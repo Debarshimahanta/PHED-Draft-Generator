@@ -6,7 +6,6 @@ import subprocess
 from pathlib import Path
 
 from docx import Document
-from docx.enum.section import WD_SECTION
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
@@ -14,7 +13,6 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
 
 from .config import ASSETS, OUTPUTS, OFFICE_HEADER, COPY_CATEGORIES
-
 
 A4_WIDTH = Cm(21.0)
 A4_HEIGHT = Cm(29.7)
@@ -41,26 +39,7 @@ def _set_cell_border(cell, **kwargs):
                 element.set(qn(f"w:{key}"), str(kwargs[edge][key]))
 
 
-def _set_paragraph_bottom_border(paragraph, size=8, color="000000", space=4):
-    p = paragraph._p
-    pPr = p.get_or_add_pPr()
-    pBdr = pPr.find(qn("w:pBdr"))
-    if pBdr is None:
-        pBdr = OxmlElement("w:pBdr")
-        pPr.append(pBdr)
-
-    bottom = pBdr.find(qn("w:bottom"))
-    if bottom is None:
-        bottom = OxmlElement("w:bottom")
-        pBdr.append(bottom)
-
-    bottom.set(qn("w:val"), "single")
-    bottom.set(qn("w:sz"), str(size))
-    bottom.set(qn("w:space"), str(space))
-    bottom.set(qn("w:color"), color)
-
-
-def _font(run, *, bold=False, size=12, name="Times New Roman", italic=False):
+def _font(run, *, bold=False, size=11, name="Times New Roman", italic=False):
     run.bold = bold
     run.italic = italic
     run.font.name = name
@@ -70,7 +49,7 @@ def _font(run, *, bold=False, size=12, name="Times New Roman", italic=False):
     run._element.rPr.rFonts.set(qn("w:eastAsia"), name)
 
 
-def _para_format(
+def _para(
     p,
     *,
     before=0,
@@ -81,18 +60,18 @@ def _para_format(
     left_cm=None,
     right_cm=None,
 ):
-    fmt = p.paragraph_format
-    fmt.space_before = Pt(before)
-    fmt.space_after = Pt(after)
-    fmt.line_spacing = line
+    pf = p.paragraph_format
+    pf.space_before = Pt(before)
+    pf.space_after = Pt(after)
+    pf.line_spacing = line
     if align is not None:
         p.alignment = align
     if first_line_cm is not None:
-        fmt.first_line_indent = Cm(first_line_cm)
+        pf.first_line_indent = Cm(first_line_cm)
     if left_cm is not None:
-        fmt.left_indent = Cm(left_cm)
+        pf.left_indent = Cm(left_cm)
     if right_cm is not None:
-        fmt.right_indent = Cm(right_cm)
+        pf.right_indent = Cm(right_cm)
 
 
 def _copy_sentence(item: dict) -> str:
@@ -107,9 +86,9 @@ def _copy_sentence(item: dict) -> str:
 
     if category == "PS Intimation":
         if ps_target:
-            base = f"The {designation} for favour of kind intimation of the matter to {ps_target}."
+            base = f"The {designation} for kind appraisal of the same to {ps_target}."
         else:
-            base = f"The {designation} for favour of kind intimation."
+            base = f"The {designation} for kind intimation."
     elif category == "Custom":
         base = custom if custom else f"The {designation}"
     else:
@@ -120,61 +99,50 @@ def _copy_sentence(item: dict) -> str:
         if base and not base.endswith((".", "!", "?")):
             base += "."
         base += " " + extra
-
     return base.strip()
 
 
 def _add_header(doc: Document):
     emblem = ASSETS / "assam_emblem.jpeg"
-
     if emblem.exists():
         p = doc.add_paragraph()
-        _para_format(p, after=1, align=WD_ALIGN_PARAGRAPH.CENTER)
+        _para(p, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
         r = p.add_run()
-        r.add_picture(str(emblem), width=Cm(1.45))
+        r.add_picture(str(emblem), width=Cm(1.25))
 
+    # Compact formal office header, matching the reference sample.
     for idx, line in enumerate(OFFICE_HEADER):
         p = doc.add_paragraph()
-        _para_format(p, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
+        _para(p, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
         r = p.add_run(line)
         if idx == 0:
-            _font(r, bold=True, size=11.5)
-        elif idx == 1:
-            _font(r, bold=True, size=11.5)
-        elif idx == 2:
-            _font(r, bold=True, size=11)
-        else:
             _font(r, bold=True, size=10.5)
+        elif idx == 1:
+            _font(r, bold=True, size=10.5)
+        elif idx == 2:
+            _font(r, bold=True, size=10)
+        else:
+            _font(r, bold=True, size=9.5)
 
-    rule = doc.add_paragraph()
-    _para_format(rule, before=3, after=8)
-    _set_paragraph_bottom_border(rule, size=10, space=2)
+    # Reference format has no decorative rule under the letterhead.
 
 
-def _add_final_signatory(doc: Document):
-    # Only one signatory/seal block is used. If Copy To exists it appears after Copy To;
-    # otherwise it appears directly after the body.
+def _add_signatory_text(doc: Document, *, signed_label=False):
+    if signed_label:
+        p = doc.add_paragraph()
+        _para(p, before=7, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.2)
+        r = p.add_run("-SIGNED-")
+        _font(r, bold=True, size=9.5)
+
     p = doc.add_paragraph()
-    _para_format(p, before=12, after=1, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.4)
-    r = p.add_run("e-signed")
-    _font(r, italic=True, size=10.5)
+    _para(p, before=3 if signed_label else 7, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.2)
+    r = p.add_run("Chief Engineer (PHE) Water, Assam")
+    _font(r, bold=True, size=10.5)
 
-    stamp = ASSETS / "chief_engineer_stamp.png"
-    if stamp.exists():
-        p = doc.add_paragraph()
-        _para_format(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.1)
-        r = p.add_run()
-        # Width-only sizing preserves the original aspect ratio and prevents distortion.
-        r.add_picture(str(stamp), width=Cm(5.25))
-    else:
-        p = doc.add_paragraph()
-        _para_format(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.4)
-        r = p.add_run("Chief Engineer (PHE) Water,")
-        _font(r, bold=True, size=11.5)
-        p = doc.add_paragraph()
-        _para_format(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.4)
-        r = p.add_run("Hengrabari, Assam")
-        _font(r, bold=True, size=11.5)
+    p = doc.add_paragraph()
+    _para(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.2)
+    r = p.add_run("Hengrabari, Guwahati - 36")
+    _font(r, bold=True, size=10.5)
 
 
 def build_docx(data: dict, output_path: Path | None = None) -> Path:
@@ -185,25 +153,26 @@ def build_docx(data: dict, output_path: Path | None = None) -> Path:
     section = doc.sections[0]
     section.page_width = A4_WIDTH
     section.page_height = A4_HEIGHT
-    section.top_margin = Cm(1.15)
-    section.bottom_margin = Cm(1.25)
-    section.left_margin = Cm(1.65)
-    section.right_margin = Cm(1.65)
-    section.header_distance = Cm(0.4)
-    section.footer_distance = Cm(0.5)
+    section.top_margin = Cm(1.0)
+    section.bottom_margin = Cm(1.0)
+    section.left_margin = Cm(1.55)
+    section.right_margin = Cm(1.55)
+    section.header_distance = Cm(0.3)
+    section.footer_distance = Cm(0.4)
 
     normal = doc.styles["Normal"]
     normal.font.name = "Times New Roman"
-    normal.font.size = Pt(12)
+    normal.font.size = Pt(11)
     normal._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
 
     _add_header(doc)
 
+    # Compact gap below header.
+    p = doc.add_paragraph()
+    _para(p, after=2)
+
     meta = doc.add_table(rows=1, cols=2)
     meta.autofit = False
-    meta.columns[0].width = Cm(9.0)
-    meta.columns[1].width = Cm(8.2)
-
     for cell in meta.rows[0].cells:
         cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
         _set_cell_border(
@@ -215,83 +184,95 @@ def build_docx(data: dict, output_path: Path | None = None) -> Path:
         )
 
     p = meta.cell(0, 0).paragraphs[0]
-    _para_format(p, after=0)
+    _para(p, after=0)
     r = p.add_run("No. ")
-    _font(r, bold=True, size=11.5)
+    _font(r, bold=True, size=10.5)
     r = p.add_run(data.get("file_no") or "")
-    _font(r, bold=True, size=11.5)
+    _font(r, bold=True, size=10.5)
 
     p = meta.cell(0, 1).paragraphs[0]
-    _para_format(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT)
+    _para(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT)
     letter_date = (data.get("date") or "").strip()
-    r = p.add_run(f"Dated: {letter_date}" if letter_date else "")
-    _font(r, size=11)
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(1)
+    if letter_date:
+        r = p.add_run(f"Dated: {letter_date}")
+        _font(r, size=10)
 
     p = doc.add_paragraph()
-    _para_format(p, after=1)
+    _para(p, before=4, after=0)
     r = p.add_run("To,")
-    _font(r, bold=True, size=11.5)
+    _font(r, bold=True, size=10.5)
 
     for line in (data.get("addressee") or "").splitlines():
         p = doc.add_paragraph()
-        _para_format(p, after=0)
+        _para(p, after=0)
         r = p.add_run(line)
-        _font(r, size=11.5)
+        _font(r, size=10.5)
 
     p = doc.add_paragraph()
-    _para_format(p, before=8, after=8)
+    _para(p, before=7, after=3)
     r = p.add_run("Sub: ")
-    _font(r, bold=True, size=11.5)
+    _font(r, bold=True, size=10.5)
     r = p.add_run(data.get("subject") or "")
-    _font(r, size=11.5)
+    _font(r, size=10.5)
+
+    # Optional reference line if later added to data model.
+    reference = (data.get("reference") or "").strip()
+    if reference:
+        p = doc.add_paragraph()
+        _para(p, after=3)
+        r = p.add_run("Ref: ")
+        _font(r, bold=True, size=10.5)
+        r = p.add_run(reference)
+        _font(r, size=10.5)
 
     p = doc.add_paragraph()
-    _para_format(p, after=7)
+    _para(p, before=4, after=4)
     r = p.add_run("Sir,")
-    _font(r, size=11.5)
+    _font(r, size=10.5)
 
     body = data.get("body") or ""
     blocks = re.split(r"\n\s*\n", body)
 
     for block in blocks:
-        if block == "" and len(blocks) == 1:
+        if not block:
             continue
         p = doc.add_paragraph()
-        _para_format(
+        _para(
             p,
-            after=7,
-            line=1.05,
+            after=5,
+            line=1.0,
             align=WD_ALIGN_PARAGRAPH.JUSTIFY,
-            first_line_cm=0.85,
+            first_line_cm=0.8,
         )
         r = p.add_run(block)
-        _font(r, size=11.5)
+        _font(r, size=10.5)
+
+    # First designation block after body, exactly as in the approved reference format.
+    _add_signatory_text(doc, signed_label=False)
 
     copies = [x for x in data.get("copies", []) if (x.get("designation") or "").strip()]
-
     if copies:
         p = doc.add_paragraph()
-        _para_format(p, before=10, after=5)
+        _para(p, before=8, after=3)
         r = p.add_run("Copy to:")
-        _font(r, bold=True, size=11.5)
+        _font(r, bold=True, size=10.5)
 
         for i, item in enumerate(copies, start=1):
             text = _copy_sentence(item)
             p = doc.add_paragraph()
-            _para_format(
+            _para(
                 p,
-                after=3,
+                after=1,
                 line=1.0,
                 align=WD_ALIGN_PARAGRAPH.JUSTIFY,
-                left_cm=0.75,
+                left_cm=0.65,
             )
-            p.paragraph_format.first_line_indent = Cm(-0.48)
+            p.paragraph_format.first_line_indent = Cm(-0.42)
             r = p.add_run(f"{i}.  {text}")
-            _font(r, size=10.8)
+            _font(r, size=9.7)
 
-    _add_final_signatory(doc)
+        # Final signed designation after Copy To.
+        _add_signatory_text(doc, signed_label=True)
 
     doc.save(output_path)
     return output_path
@@ -299,7 +280,6 @@ def build_docx(data: dict, output_path: Path | None = None) -> Path:
 
 def build_pdf(docx_path: Path) -> Path | None:
     out_dir = docx_path.parent
-
     commands = [
         ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", str(out_dir), str(docx_path)],
         ["soffice", "--headless", "--convert-to", "pdf", "--outdir", str(out_dir), str(docx_path)],
@@ -307,19 +287,12 @@ def build_pdf(docx_path: Path) -> Path | None:
 
     for cmd in commands:
         try:
-            subprocess.run(
-                cmd,
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=60,
-            )
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
             pdf = out_dir / f"{docx_path.stem}.pdf"
             if pdf.exists():
                 return pdf
         except Exception:
             continue
-
     return None
 
 
@@ -331,7 +304,7 @@ def preview_html(data: dict) -> str:
     body_html = "".join(
         f'<p>{html.escape(block).replace(chr(10), "<br>")}</p>'
         for block in re.split(r"\n\s*\n", body)
-        if block != ""
+        if block
     )
 
     copies = []
@@ -340,8 +313,11 @@ def preview_html(data: dict) -> str:
             copies.append(
                 f'<div class="copy"><span>{i}.</span><div>{html.escape(_copy_sentence(item))}</div></div>'
             )
-
     copy_html = "".join(copies)
+
+    reference_html = ""
+    if (data.get("reference") or "").strip():
+        reference_html = f'<div class="reference"><b>Ref:</b> {esc(data.get("reference"))}</div>'
 
     return f'''<!doctype html>
 <html>
@@ -355,30 +331,29 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
     width:794px;
     min-height:1123px;
     margin:auto;
-    padding:44px 62px 48px;
+    padding:38px 58px 42px;
     box-shadow:0 3px 16px rgba(0,0,0,.18);
 }}
 .emblem{{text-align:center;line-height:1}}
-.emblem img{{width:54px;height:auto}}
-.header{{text-align:center;font-weight:700;line-height:1.12;font-size:15px}}
-.header .small{{font-size:13px}}
-.rule{{border-top:1.5px solid #111;margin:8px 0 14px}}
-.meta{{display:flex;justify-content:space-between;font-size:14px;margin-top:2px}}
-.to{{font-size:14px;margin-top:17px;line-height:1.22}}
-.subject{{font-size:14px;margin-top:20px;line-height:1.28}}
-.salutation{{font-size:14px;margin-top:18px}}
+.emblem img{{width:46px;height:auto}}
+.header{{text-align:center;font-weight:700;line-height:1.08;font-size:12px}}
+.header .small{{font-size:11px}}
+.meta{{display:flex;justify-content:space-between;font-size:12px;margin-top:14px}}
+.to{{font-size:12px;margin-top:14px;line-height:1.15}}
+.subject,.reference{{font-size:12px;margin-top:13px;line-height:1.18}}
+.reference{{margin-top:4px}}
+.salutation{{font-size:12px;margin-top:12px}}
 .body p{{
-    font-size:14px;
-    line-height:1.30;
+    font-size:12px;
+    line-height:1.18;
     text-align:justify;
-    text-indent:34px;
-    margin:9px 0;
+    text-indent:31px;
+    margin:7px 0;
 }}
-.copyhead{{font-size:14px;font-weight:700;margin-top:22px;margin-bottom:6px}}
-.copy{{display:grid;grid-template-columns:24px 1fr;gap:5px;margin:4px 10px;font-size:13.4px;line-height:1.25;text-align:justify}}
-.sign-wrap{{margin-top:30px;text-align:right;padding-right:6px}}
-.esigned{{font-size:13px;font-style:italic;margin-right:25px;margin-bottom:3px}}
-.stamp img{{width:198px;height:auto;object-fit:contain}}
+.sign{{text-align:right;font-weight:700;font-size:11.5px;line-height:1.15;margin-top:17px}}
+.copyhead{{font-size:12px;font-weight:700;margin-top:17px;margin-bottom:5px}}
+.copy{{display:grid;grid-template-columns:20px 1fr;gap:4px;margin:2px 9px;font-size:11px;line-height:1.16;text-align:justify}}
+.signed{{text-align:right;font-weight:700;font-size:10.5px;margin-top:20px}}
 </style>
 </head>
 <body>
@@ -390,7 +365,6 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
         HENGRABARI, GUWAHATI - 36<br>
         <span class="small">Email - asphe@rediffmail.com</span>
     </div>
-    <div class="rule"></div>
 
     <div class="meta">
         <div><b>No. {esc(data.get("file_no"))}</b></div>
@@ -399,15 +373,15 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
 
     <div class="to"><b>To,</b><br>{esc(data.get("addressee"))}</div>
     <div class="subject"><b>Sub:</b> {esc(data.get("subject"))}</div>
+    {reference_html}
     <div class="salutation">Sir,</div>
     <div class="body">{body_html}</div>
 
+    <div class="sign">Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>
+
     {'<div class="copyhead">Copy to:</div>' + copy_html if copy_html else ''}
 
-    <div class="sign-wrap">
-        <div class="esigned">e-signed</div>
-        <div class="stamp"><img src="data:image/png;base64,{{STAMP}}"></div>
-    </div>
+    {('<div class="signed">-SIGNED-</div><div class="sign" style="margin-top:4px">Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>') if copy_html else ''}
 </div>
 </body>
 </html>'''
