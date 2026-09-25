@@ -122,7 +122,7 @@ def _add_header(doc: Document):
         elif idx == 2:
             _font(r, bold=True, size=10)
         else:
-            _font(r, bold=True, size=9.5)
+            _font(r, bold=True, size=10.5)
 
     # Reference format has no decorative rule under the letterhead.
 
@@ -151,7 +151,7 @@ def _add_signatory_text(doc: Document, *, signed_label=False):
 
     if signed_label:
         r = p.add_run("-SIGNED-")
-        _font(r, bold=True, size=9.5)
+        _font(r, bold=True, size=10.5)
         p = cell.add_paragraph()
         _para(p, before=2, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
 
@@ -214,7 +214,7 @@ def build_docx(data: dict, output_path: Path | None = None) -> Path:
     letter_date = (data.get("date") or "").strip()
     if letter_date:
         r = p.add_run(f"Dated: {letter_date}")
-        _font(r, size=10)
+        _font(r, size=10.5)
 
     p = doc.add_paragraph()
     _para(p, before=4, after=0)
@@ -288,7 +288,7 @@ def build_docx(data: dict, output_path: Path | None = None) -> Path:
             )
             p.paragraph_format.first_line_indent = Cm(-0.42)
             r = p.add_run(f"{i}.  {text}")
-            _font(r, size=9.7)
+            _font(r, size=10.5)
 
         # Final signed designation after Copy To.
         _add_signatory_text(doc, signed_label=True)
@@ -344,6 +344,7 @@ def preview_html(data: dict) -> str:
 <meta charset="utf-8">
 <style>
 *{{box-sizing:border-box}}
+:root{{--letter-font:12px;--letter-line:1.18}}
 body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22px;color:#111}}
 .page{{
     background:#fff;
@@ -352,28 +353,45 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
     margin:auto;
     padding:38px 58px 42px;
     box-shadow:0 3px 16px rgba(0,0,0,.18);
+    font-size:var(--letter-font);
+    line-height:var(--letter-line);
 }}
 .emblem{{text-align:center;line-height:1}}
 .emblem img{{width:46px;height:auto}}
 .header{{text-align:center;font-weight:700;line-height:1.08;font-size:12px}}
-.header .small{{font-size:11px}}
-.meta{{display:flex;justify-content:space-between;font-size:12px;margin-top:14px}}
-.to{{font-size:12px;margin-top:14px;line-height:1.15}}
-.subject,.reference{{font-size:12px;margin-top:13px;line-height:1.18}}
+.header .small{{font-size:12px}}
+.meta{{display:flex;justify-content:space-between;font-size:var(--letter-font);margin-top:14px}}
+.to{{font-size:var(--letter-font);margin-top:14px;line-height:var(--letter-line)}}
+.subject,.reference{{font-size:var(--letter-font);margin-top:13px;line-height:var(--letter-line)}}
 .reference{{margin-top:4px}}
-.salutation{{font-size:12px;margin-top:12px}}
+.salutation{{font-size:var(--letter-font);margin-top:12px}}
 .body p{{
-    font-size:12px;
-    line-height:1.18;
+    font-size:var(--letter-font);
+    line-height:1.28;
     text-align:justify;
     text-indent:31px;
-    margin:7px 0;
+    margin:8px 0;
 }}
-.sign{{text-align:right;font-weight:700;font-size:11.5px;line-height:1.15;margin-top:17px}}
-.copyhead{{font-size:12px;font-weight:700;margin-top:17px;margin-bottom:5px}}
-.copy{{display:grid;grid-template-columns:20px 1fr;gap:4px;margin:2px 9px;font-size:11px;line-height:1.16;text-align:justify}}
-.signed{{text-align:right;font-weight:700;font-size:10.5px;margin-top:20px}}
-</style>
+.signbox{{
+    width:305px;
+    margin:17px 0 0 auto;
+    text-align:center;
+    font-weight:700;
+    font-size:var(--letter-font);
+    line-height:1.20;
+}}
+.copyhead{{font-size:var(--letter-font);font-weight:700;margin-top:17px;margin-bottom:5px}}
+.copy{{
+    display:grid;
+    grid-template-columns:20px 1fr;
+    gap:4px;
+    margin:3px 9px;
+    font-size:var(--letter-font);
+    line-height:1.20;
+    text-align:justify;
+}}
+.signbox.signedbox{{margin-top:20px}}
+.signed{{font-size:var(--letter-font);font-weight:700;margin-bottom:4px}}</style>
 </head>
 <body>
 <div class="page">
