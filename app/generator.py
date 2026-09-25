@@ -150,7 +150,7 @@ def _add_signatory_text(doc: Document, *, signed_label=False):
     _para(p, before=7 if not signed_label else 5, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
 
     if signed_label:
-        r = p.add_run("-SIGNED-")
+        r = p.add_run("e-SIGNED")
         _font(r, bold=True, size=10.5)
         p = cell.add_paragraph()
         _para(p, before=2, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
@@ -418,7 +418,7 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
 
     {'<div class="copyhead">Copy to:</div>' + copy_html if copy_html else ''}
 
-    {('<div class="signbox signedbox"><div class="signed">-SIGNED-</div>Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>') if copy_html else ''}
+    {('<div class="signbox signedbox"><div class="signed">e-SIGNED</div>Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>') if copy_html else ''}
 </div>
 </body>
 </html>'''
