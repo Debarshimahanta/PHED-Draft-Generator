@@ -115,6 +115,7 @@ with left:
 with right:
     st.markdown('### Live Preview')
     html_preview = preview_html(data)
+
     emblem = ASSETS / 'assam_emblem.jpeg'
     if emblem.exists():
         encoded = base64.b64encode(emblem.read_bytes()).decode('ascii')
@@ -124,4 +125,15 @@ with right:
             '<div class="emblem"><img src="data:image/jpeg;base64,{EMBLEM}"></div>',
             '<div class="emblem"></div>'
         )
-    st.components.v1.html(html_preview, height=1050, scrolling=True)
+
+    stamp = ASSETS / 'chief_engineer_stamp.png'
+    if stamp.exists():
+        stamp_encoded = base64.b64encode(stamp.read_bytes()).decode('ascii')
+        html_preview = html_preview.replace('{STAMP}', stamp_encoded)
+    else:
+        html_preview = html_preview.replace(
+            '<div class="stamp"><img src="data:image/png;base64,{STAMP}"></div>',
+            '<div class="stamp"><b>Chief Engineer (PHE) Water,<br>Hengrabari, Assam</b></div>'
+        )
+
+    st.components.v1.html(html_preview, height=1120, scrolling=True)
