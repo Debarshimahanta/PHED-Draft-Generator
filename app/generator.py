@@ -128,19 +128,38 @@ def _add_header(doc: Document):
 
 
 def _add_signatory_text(doc: Document, *, signed_label=False):
+    # Keep the designation block on the right side of the page, but center the
+    # two designation lines within that block. This matches the office seal style.
+    table = doc.add_table(rows=1, cols=2)
+    table.autofit = False
+    table.columns[0].width = Cm(10.8)
+    table.columns[1].width = Cm(7.0)
+
+    for cell in table.rows[0].cells:
+        cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
+        _set_cell_border(
+            cell,
+            top={"val": "nil"},
+            left={"val": "nil"},
+            bottom={"val": "nil"},
+            right={"val": "nil"},
+        )
+
+    cell = table.cell(0, 1)
+    p = cell.paragraphs[0]
+    _para(p, before=7 if not signed_label else 5, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
+
     if signed_label:
-        p = doc.add_paragraph()
-        _para(p, before=7, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.2)
         r = p.add_run("-SIGNED-")
         _font(r, bold=True, size=9.5)
+        p = cell.add_paragraph()
+        _para(p, before=2, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
 
-    p = doc.add_paragraph()
-    _para(p, before=3 if signed_label else 7, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.2)
     r = p.add_run("Chief Engineer (PHE) Water, Assam")
     _font(r, bold=True, size=10.5)
 
-    p = doc.add_paragraph()
-    _para(p, after=0, align=WD_ALIGN_PARAGRAPH.RIGHT, right_cm=0.2)
+    p = cell.add_paragraph()
+    _para(p, after=0, align=WD_ALIGN_PARAGRAPH.CENTER)
     r = p.add_run("Hengrabari, Guwahati - 36")
     _font(r, bold=True, size=10.5)
 
@@ -377,11 +396,11 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
     <div class="salutation">Sir,</div>
     <div class="body">{body_html}</div>
 
-    <div class="sign">Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>
+    <div class="signbox">Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>
 
     {'<div class="copyhead">Copy to:</div>' + copy_html if copy_html else ''}
 
-    {('<div class="signed">-SIGNED-</div><div class="sign" style="margin-top:4px">Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>') if copy_html else ''}
+    {('<div class="signbox signedbox"><div class="signed">-SIGNED-</div>Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>') if copy_html else ''}
 </div>
 </body>
 </html>'''
