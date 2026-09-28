@@ -61,43 +61,123 @@ button{border:0;border-radius:9px;padding:10px 14px;font-weight:650;cursor:point
 <section class="panel preview"><div class="preview-title"><div><strong>Live A4 Preview</strong><span style="display:block">Updates instantly as you type</span></div><span>Print-ready</span></div><div class="preview-wrap"><div class="preview-pages" id="previewPages"></div></div></section>
 </div>
 <script>
+
 var EMBLEM="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";
-var S={copies:[{designation:"Addl. Chief Engineer (PHE), LAZ",category:"Info & Action",extra:"",ps:"",custom:""},{designation:"Superintending Engineer (PHE), Guwahati Circle",category:"Info & Action",extra:"",ps:"",custom:""}]};
-function q(id){return document.getElementById(id)}
-function e(s){return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function blocks(t){var o=[];(t||"").split(/\n\s*\n/).forEach(function(r){if(!r)return;var ls=r.split(/\n/),n=ls.filter(function(x){return x.trim()});if(n.length&&n.every(function(x){return /^\s*(?:\d+[.)]|[A-Za-z][.)]|[-•])\s+/.test(x)})){n.forEach(function(x){o.push(["l",x])})}else if(n.length>=2&&n.every(function(x){return x.trim().length<=80})){n.forEach(function(x){o.push(["s",x])})}else{o.push(["p",r])}});return o}
-function cs(x){var d=(x.designation||"").trim(),b="";if(!d)return"";if(x.category==="Info & Action")b="The "+d+" for favour of information and necessary action.";else if(x.category==="Kind Information")b="The "+d+" for favour of kind information.";else if(x.category==="PS Intimation")b=x.ps?"The "+d+" for kind intimation of "+x.ps+".":"The "+d+" for kind intimation.";else b=(x.custom||"").trim()||"The "+d;if((x.extra||"").trim()){if(!/[.!?]$/.test(b))b+=".";b+=" "+x.extra.trim()}return b}
-function rc(){var h=q("copies");h.innerHTML="";S.copies.forEach(function(x,i){var d=document.createElement("div");d.className="copy-card";var opts=["Info & Action","Kind Information","PS Intimation","Custom"].map(function(v){return '<option'+(v===x.category?' selected':'')+'>'+v+'</option>'}).join("");d.innerHTML='<div class="copy-grid"><div><label>Designation / Address</label><input data-i="'+i+'" data-k="designation" placeholder="e.g. Superintending Engineer (PHE), Guwahati Circle" value="'+e(x.designation)+'"></div><div><label>Category</label><select data-i="'+i+'" data-k="category">'+opts+'</select></div></div>'+(x.category==="PS Intimation"?'<label>Intimation to designation</label><input data-i="'+i+'" data-k="ps" placeholder="e.g. Special Chief Secretary (PHE) Department" value="'+e(x.ps)+'">':'')+(x.category==="Custom"?'<label>Exact copy text</label><textarea data-i="'+i+'" data-k="custom" placeholder="Type the exact copy wording here">'+e(x.custom)+'</textarea>':'')+'<label>Additional instruction</label><input data-i="'+i+'" data-k="extra" placeholder="Optional: e.g. He is also requested to attend the meeting." value="'+e(x.extra)+'"><div class="toolbar"><button class="btn" data-r="'+i+'">Remove</button></div>';h.appendChild(d)});h.querySelectorAll("[data-k]").forEach(function(el){el.oninput=function(){var i=+this.dataset.i,k=this.dataset.k;S.copies[i][k]=this.value;if(k==="category")rc();render()}});h.querySelectorAll("[data-r]").forEach(function(b){b.onclick=function(){S.copies.splice(+this.dataset.r,1);rc();render()}})}
-function bodyHtml(){var firstPara=true;return blocks(q("body").value).map(function(x){if(x[0]==="p"){var cls=firstPara?"body-paragraph first-paragraph":"body-paragraph";firstPara=false;return '<p class="'+cls+'">'+e(x[1]).replace(/\n/g,"<br>")+'</p>'}if(x[0]==="l")return '<div class="body-listline">'+e(x[1])+'</div>';return '<div class="body-shortline">'+e(x[1])+'</div>'}).join("")}
-function tpl(){return q("template").value}
+var S={copies:[
+  {designation:"Addl. Chief Engineer (PHE), LAZ",category:"Info & Action",extra:"",ps:"",custom:""},
+  {designation:"Superintending Engineer (PHE), Guwahati Circle",category:"Info & Action",extra:"",ps:"",custom:""}
+]};
+
+function q(id){return document.getElementById(id);}
+function e(s){
+  return String(s||"").replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+  });
+}
+function tpl(){return q("template").value;}
+
+function blocks(t){
+  var out=[];
+  String(t||"").split(/\n\s*\n/).forEach(function(raw){
+    if(!raw)return;
+    var lines=raw.split(/\n/);
+    var non=lines.filter(function(x){return x.trim();});
+    if(!non.length)return;
+    if(non.every(function(x){return /^\s*(?:\d+[.)]|[A-Za-z][.)]|[-•])\s+/.test(x);})){
+      non.forEach(function(x){out.push(["l",x]);});
+    }else if(non.length>=2 && non.every(function(x){return x.trim().length<=80;})){
+      non.forEach(function(x){out.push(["s",x]);});
+    }else{
+      out.push(["p",raw]);
+    }
+  });
+  return out;
+}
+
+function cs(x){
+  var d=(x.designation||"").trim();
+  if(!d)return "";
+  var b="";
+  if(x.category==="Info & Action"){
+    b="The "+d+" for favour of information and necessary action.";
+  }else if(x.category==="Kind Information"){
+    b="The "+d+" for favour of kind information.";
+  }else if(x.category==="PS Intimation"){
+    b=x.ps ? "The "+d+" for kind intimation of "+x.ps+"." : "The "+d+" for kind intimation.";
+  }else{
+    b=(x.custom||"").trim() || "The "+d;
+  }
+  if((x.extra||"").trim()){
+    if(!/[.!?]$/.test(b))b+=".";
+    b+=" "+x.extra.trim();
+  }
+  return b;
+}
+
 function headerHtml(){
   if(tpl()==="MD_1"){
-    return '<div class="emblem"><img src="data:image/jpeg;base64,'+EMBLEM+'"></div><div class="letterhead">GOVERNMENT OF ASSAM<br>OFFICE OF THE MISSION DIRECTOR: JAL JEEVAN MISSION, ASSAM<br>HENGRABARI, GUWAHATI-36</div>';
+    return '<div class="emblem"><img src="data:image/jpeg;base64,'+EMBLEM+'"></div>'+
+      '<div class="letterhead">GOVERNMENT OF ASSAM<br>OFFICE OF THE MISSION DIRECTOR: JAL JEEVAN MISSION, ASSAM<br>HENGRABARI, GUWAHATI-36</div>';
   }
-  return '<div class="emblem"><img src="data:image/jpeg;base64,'+EMBLEM+'"></div><div class="letterhead">GOVERNMENT OF ASSAM<br>OFFICE OF THE CHIEF ENGINEER (PHE) WATER, ASSAM<br>HENGRABARI, GUWAHATI - 36<br>Email - asphe@rediffmail.com</div>';
+  return '<div class="emblem"><img src="data:image/jpeg;base64,'+EMBLEM+'"></div>'+
+    '<div class="letterhead">GOVERNMENT OF ASSAM<br>OFFICE OF THE CHIEF ENGINEER (PHE) WATER, ASSAM<br>HENGRABARI, GUWAHATI - 36<br>Email - asphe@rediffmail.com</div>';
 }
+
 function signHtml(signed){
   var label=signed?'<div class="signed">e-SIGNED</div>':'';
   if(tpl()==="MD_1"){
-    return '<div class="signbox'+(signed?' signedbox':'')+'">'+label+'(Kailash Karthik N, IAS)<br>Mission Director, JJM, Assam<br>Hengrabari, Guwahati -36.</div>';
+    return '<div class="signbox'+(signed?' signedbox':'')+'">'+label+
+      '(Kailash Karthik N, IAS)<br>Mission Director, JJM, Assam<br>Hengrabari, Guwahati -36.</div>';
   }
-  return '<div class="signbox'+(signed?' signedbox':'')+'">'+label+'Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>';
+  return '<div class="signbox'+(signed?' signedbox':'')+'">'+label+
+    'Chief Engineer (PHE) Water, Assam<br>Hengrabari, Guwahati - 36</div>';
 }
-function letterHtml(){var copies=S.copies.filter(function(x){return(x.designation||"").trim()});return headerHtml()+'<div class="meta"><div><b>No. '+e(q("fileNo").value)+'</b></div><div></div></div><div class="to"><b>To,</b><br>'+e(q("addressee").value).replace(/\n/g,"<br>")+'</div><div class="subject"><b>Sub:</b> '+e(q("subject").value)+'</div><div class="salutation">'+e(q("salutation").value)+',</div>'+bodyHtml()+signHtml(false)+(copies.length?'<div class="copyhead">Copy to:</div>'+copies.map(function(x,i){return '<div class="copyline"><span>'+(i+1)+'.</span><div>'+e(cs(x))+'</div></div>').join("")+signHtml(true):"")}
+
+function bodyHtml(){
+  var first=true;
+  return blocks(q("body").value).map(function(x){
+    if(x[0]==="p"){
+      var cls=first?"body-paragraph first-paragraph":"body-paragraph";
+      first=false;
+      return '<p class="'+cls+'">'+e(x[1]).replace(/\n/g,"<br>")+'</p>';
+    }
+    if(x[0]==="l")return '<div class="body-listline">'+e(x[1])+'</div>';
+    return '<div class="body-shortline">'+e(x[1])+'</div>';
+  }).join("");
+}
+
+function letterHtml(){
+  var copies=S.copies.filter(function(x){return (x.designation||"").trim();});
+  var out=headerHtml();
+  out+='<div class="meta"><div><b>No. '+e(q("fileNo").value)+'</b></div><div></div></div>';
+  out+='<div class="to"><b>To,</b><br>'+e(q("addressee").value).replace(/\n/g,"<br>")+'</div>';
+  out+='<div class="subject"><b>Sub:</b> '+e(q("subject").value)+'</div>';
+  out+='<div class="salutation">'+e(q("salutation").value)+',</div>';
+  out+=bodyHtml();
+  out+=signHtml(false);
+  if(copies.length){
+    out+='<div class="copyhead">Copy to:</div>';
+    copies.forEach(function(x,i){
+      out+='<div class="copyline"><span>'+(i+1)+'.</span><div>'+e(cs(x))+'</div></div>';
+    });
+    out+=signHtml(true);
+  }
+  return out;
+}
 
 function previewBlocks(){
-  var out=[];
-  out.push(headerHtml());
-  out.push('<div class="meta"><div><b>No. '+e(q("fileNo").value)+'</b></div><div></div></div>');
-  out.push('<div class="to"><b>To,</b><br>'+e(q("addressee").value).replace(/\n/g,"<br>")+'</div>');
-  out.push('<div class="subject"><b>Sub:</b> '+e(q("subject").value)+'</div>');
-  out.push('<div class="salutation">'+e(q("salutation").value)+',</div>');
-
-  var firstPara=true;
+  var out=[
+    headerHtml(),
+    '<div class="meta"><div><b>No. '+e(q("fileNo").value)+'</b></div><div></div></div>',
+    '<div class="to"><b>To,</b><br>'+e(q("addressee").value).replace(/\n/g,"<br>")+'</div>',
+    '<div class="subject"><b>Sub:</b> '+e(q("subject").value)+'</div>',
+    '<div class="salutation">'+e(q("salutation").value)+',</div>'
+  ];
+  var first=true;
   blocks(q("body").value).forEach(function(x){
     if(x[0]==="p"){
-      var cls=firstPara?"body-paragraph first-paragraph":"body-paragraph";
-      firstPara=false;
+      var cls=first?"body-paragraph first-paragraph":"body-paragraph";
+      first=false;
       out.push('<p class="'+cls+'">'+e(x[1]).replace(/\n/g,"<br>")+'</p>');
     }else if(x[0]==="l"){
       out.push('<div class="body-listline">'+e(x[1])+'</div>');
@@ -105,10 +185,8 @@ function previewBlocks(){
       out.push('<div class="body-shortline">'+e(x[1])+'</div>');
     }
   });
-
   out.push(signHtml(false));
-
-  var copies=S.copies.filter(function(x){return(x.designation||"").trim()});
+  var copies=S.copies.filter(function(x){return (x.designation||"").trim();});
   if(copies.length){
     out.push('<div class="copyhead">Copy to:</div>');
     copies.forEach(function(x,i){
@@ -119,152 +197,218 @@ function previewBlocks(){
   return out;
 }
 
-function makePage(pageNo){
+function makePage(n){
   var page=document.createElement("div");
   page.className="page";
   var inner=document.createElement("div");
   inner.className="page-inner";
   var num=document.createElement("div");
   num.className="page-number";
-  num.textContent="Page "+pageNo;
+  num.textContent="Page "+n;
   page.appendChild(inner);
   page.appendChild(num);
   return {page:page,inner:inner};
 }
 
-function nodeFromHtml(html){
-  var wrap=document.createElement("div");
-  wrap.innerHTML=html.trim();
-  return wrap.firstElementChild;
-}
-
-function fits(inner,node){
-  inner.appendChild(node);
-  var ok=inner.scrollHeight<=inner.clientHeight+1;
-  inner.removeChild(node);
-  return ok;
-}
-
-function splitTextNodeToFit(html,inner){
-  var source=nodeFromHtml(html);
-  if(!source)return [html];
-
-  var plain=source.innerText||source.textContent||"";
-  var words=plain.split(/\s+/).filter(Boolean);
-  if(words.length<2)return [html];
-
-  var cls=source.className||"";
-  var chunks=[];
-  var start=0;
-
-  while(start<words.length){
-    var lo=start+1,hi=words.length,best=start;
-    while(lo<=hi){
-      var mid=Math.floor((lo+hi)/2);
-      var text=words.slice(start,mid).join(" ");
-      var test=document.createElement(source.tagName.toLowerCase());
-      test.className=cls;
-      if(start>0)test.classList.remove("first-paragraph");
-      test.textContent=text;
-      if(fits(inner,test)){best=mid;lo=mid+1}else{hi=mid-1}
-    }
-    if(best===start)best=start+1;
-    var piece=document.createElement(source.tagName.toLowerCase());
-    piece.className=cls;
-    if(start>0)piece.classList.remove("first-paragraph");
-    piece.textContent=words.slice(start,best).join(" ");
-    chunks.push(piece.outerHTML);
-    start=best;
-  }
-  return chunks;
+function nodeFromHtml(s){
+  var w=document.createElement("div");
+  w.innerHTML=String(s||"").trim();
+  return w.firstElementChild;
 }
 
 function renderPaginatedPreview(){
   var host=q("previewPages");
+  if(!host)return;
   host.innerHTML="";
 
-  var measure=document.querySelector(".measure-host");
-  if(measure)measure.remove();
-  measure=document.createElement("div");
-  measure.className="measure-host";
-  document.body.appendChild(measure);
+  var measuring=document.createElement("div");
+  measuring.className="measure-host";
+  document.body.appendChild(measuring);
 
   var pageNo=1;
-  var visible=makePage(pageNo);
-  var measured=makePage(pageNo);
-  host.appendChild(visible.page);
-  measure.appendChild(measured.page);
+  var vis=makePage(pageNo);
+  var mea=makePage(pageNo);
+  host.appendChild(vis.page);
+  measuring.appendChild(mea.page);
 
-  function newPage(){
+  function nextPage(){
     pageNo++;
-    visible=makePage(pageNo);
-    measured=makePage(pageNo);
-    host.appendChild(visible.page);
-    measure.innerHTML="";
-    measure.appendChild(measured.page);
+    vis=makePage(pageNo);
+    mea=makePage(pageNo);
+    host.appendChild(vis.page);
+    measuring.innerHTML="";
+    measuring.appendChild(mea.page);
   }
 
-  previewBlocks().forEach(function(html){
-    var v=nodeFromHtml(html),m=nodeFromHtml(html);
+  function canFit(measureNode){
+    mea.inner.appendChild(measureNode);
+    var ok=mea.inner.scrollHeight<=mea.inner.clientHeight+1;
+    if(!ok)mea.inner.removeChild(measureNode);
+    return ok;
+  }
+
+  previewBlocks().forEach(function(markup){
+    var v=nodeFromHtml(markup);
+    var m=nodeFromHtml(markup);
     if(!v||!m)return;
 
-    measured.inner.appendChild(m);
-    if(measured.inner.scrollHeight<=measured.inner.clientHeight+1){
-      visible.inner.appendChild(v);
-      return;
-    }
-    measured.inner.removeChild(m);
-
-    if(visible.inner.children.length===0){
-      splitTextNodeToFit(html,measured.inner).forEach(function(piece,idx){
-        var pv=nodeFromHtml(piece),pm=nodeFromHtml(piece);
-        measured.inner.appendChild(pm);
-        if(measured.inner.scrollHeight>measured.inner.clientHeight+1 && visible.inner.children.length){
-          measured.inner.removeChild(pm);
-          newPage();
-          pm=nodeFromHtml(piece);
-          measured.inner.appendChild(pm);
-        }
-        visible.inner.appendChild(pv);
-        if(idx<splitTextNodeToFit(html,measured.inner).length-1)newPage();
-      });
+    if(canFit(m)){
+      vis.inner.appendChild(v);
       return;
     }
 
-    newPage();
-    m=nodeFromHtml(html);
-    measured.inner.appendChild(m);
+    if(vis.inner.children.length>0)nextPage();
 
-    if(measured.inner.scrollHeight<=measured.inner.clientHeight+1){
-      visible.inner.appendChild(v);
-    }else{
-      measured.inner.removeChild(m);
-      var pieces=splitTextNodeToFit(html,measured.inner);
-      pieces.forEach(function(piece,idx){
-        var pv=nodeFromHtml(piece),pm=nodeFromHtml(piece);
-        measured.inner.appendChild(pm);
-        if(measured.inner.scrollHeight>measured.inner.clientHeight+1 && visible.inner.children.length){
-          measured.inner.removeChild(pm);
-          newPage();
-          pm=nodeFromHtml(piece);
-          measured.inner.appendChild(pm);
-        }
-        visible.inner.appendChild(pv);
-        if(idx<pieces.length-1)newPage();
-      });
+    v=nodeFromHtml(markup);
+    m=nodeFromHtml(markup);
+
+    if(canFit(m)){
+      vis.inner.appendChild(v);
+      return;
+    }
+
+    var source=nodeFromHtml(markup);
+    var words=((source&&source.innerText)||"").split(/\s+/).filter(Boolean);
+    if(!words.length)return;
+
+    var tag=(source.tagName||"DIV").toLowerCase();
+    var cls=source.className||"";
+    var start=0;
+
+    while(start<words.length){
+      var low=start+1,high=words.length,best=start;
+      while(low<=high){
+        var mid=Math.floor((low+high)/2);
+        var test=document.createElement(tag);
+        test.className=cls;
+        if(start>0)test.classList.remove("first-paragraph");
+        test.textContent=words.slice(start,mid).join(" ");
+        mea.inner.appendChild(test);
+        var ok=mea.inner.scrollHeight<=mea.inner.clientHeight+1;
+        mea.inner.removeChild(test);
+        if(ok){best=mid;low=mid+1;}else{high=mid-1;}
+      }
+      if(best===start){
+        if(vis.inner.children.length>0)nextPage();
+        best=Math.min(start+1,words.length);
+      }
+      var piece=document.createElement(tag);
+      piece.className=cls;
+      if(start>0)piece.classList.remove("first-paragraph");
+      piece.textContent=words.slice(start,best).join(" ");
+      var pieceM=piece.cloneNode(true);
+      mea.inner.appendChild(pieceM);
+      if(mea.inner.scrollHeight>mea.inner.clientHeight+1 && vis.inner.children.length>0){
+        mea.inner.removeChild(pieceM);
+        nextPage();
+        pieceM=piece.cloneNode(true);
+        mea.inner.appendChild(pieceM);
+      }
+      vis.inner.appendChild(piece);
+      start=best;
+      if(start<words.length)nextPage();
     }
   });
 
-  measure.remove();
+  measuring.remove();
 }
 
-function render(){renderPaginatedPreview()}
-["fileNo","addressee","subject","salutation","body","template"].forEach(function(id){q(id).oninput=render});
-q("addCopy").onclick=function(){S.copies.push({designation:"",category:"Info & Action",extra:"",ps:"",custom:""});rc();render()};
-q("pdf").onclick=function(){renderPaginatedPreview();setTimeout(function(){window.print()},80)};
-q("clear").onclick=function(){["fileNo","addressee","subject","body"].forEach(function(id){q(id).value=""});S.copies=[];rc();render()};
-q("save").onclick=function(){localStorage.setItem("phedDraft",JSON.stringify({template:q("template").value,fileNo:q("fileNo").value,addressee:q("addressee").value,subject:q("subject").value,salutation:q("salutation").value,body:q("body").value,copies:S.copies}));alert("Draft saved.")};
-q("load").onclick=function(){var x=JSON.parse(localStorage.getItem("phedDraft")||"null");if(!x)return alert("No saved draft.");q("template").value=x.template||"CE_1";q("fileNo").value=x.fileNo||"";q("addressee").value=x.addressee||"";q("subject").value=x.subject||"";q("salutation").value=x.salutation||"Sir";q("body").value=x.body||"";S.copies=x.copies||[];rc();render()};
-q("word").onclick=function(){var css='@page{size:A4;margin:1.5cm}body{font-family:"Times New Roman";font-size:12pt;color:#000;line-height:1.15}.page{width:100%;margin:auto}.emblem{text-align:center;line-height:1}.emblem img{width:1.2cm}.letterhead{text-align:center;font-weight:bold;font-size:11.5pt;line-height:1.05}.meta{display:flex;justify-content:space-between;margin-top:14pt}.to{margin-top:12pt;line-height:1.15}.subject{margin-top:12pt;line-height:1.2}.salutation{margin-top:10pt}.body-paragraph{text-align:justify;text-indent:0;margin:8pt 0;line-height:1.2}.body-paragraph.first-paragraph{text-indent:0.75cm}.body-listline{margin:4pt 0 4pt 0.75cm;padding-left:0.45cm;text-indent:-0.45cm;line-height:1.15}.body-shortline{margin:4pt 0 4pt 0.75cm;line-height:1.15}.signbox{width:7.8cm;margin:18pt 0 0 auto;text-align:center;font-weight:bold;line-height:1.15}.copyhead{font-weight:bold;margin-top:18pt;margin-bottom:5pt}.copyline{display:grid;grid-template-columns:0.5cm 1fr;gap:0.1cm;margin:3pt 0.25cm;text-align:justify;line-height:1.15}.signedbox{margin-top:18pt}.signed{font-weight:bold;margin-bottom:3pt}';var doc='<html><head><meta charset="UTF-8"><style>'+css+'</style></head><body><div class="page">'+letterHtml()+'</div></body></html>';var blob=new Blob([doc],{type:"application/msword"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="PHED_Letter.doc";a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1500)};
-rc();render();
+function render(){renderPaginatedPreview();}
+
+function rc(){
+  var h=q("copies");
+  h.innerHTML="";
+  S.copies.forEach(function(x,i){
+    var d=document.createElement("div");
+    d.className="copy-card";
+    var opts=["Info & Action","Kind Information","PS Intimation","Custom"].map(function(v){
+      return '<option'+(v===x.category?' selected':'')+'>'+v+'</option>';
+    }).join("");
+    d.innerHTML=
+      '<div class="copy-grid"><div><label>Designation / Address</label>'+
+      '<input data-i="'+i+'" data-k="designation" placeholder="e.g. Superintending Engineer (PHE), Guwahati Circle" value="'+e(x.designation)+'"></div>'+
+      '<div><label>Category</label><select data-i="'+i+'" data-k="category">'+opts+'</select></div></div>'+
+      (x.category==="PS Intimation"?
+        '<label>Intimation to designation</label><input data-i="'+i+'" data-k="ps" placeholder="e.g. Special Chief Secretary (PHE) Department" value="'+e(x.ps)+'">':'')+
+      (x.category==="Custom"?
+        '<label>Exact copy text</label><textarea data-i="'+i+'" data-k="custom" placeholder="Type the exact copy wording here">'+e(x.custom)+'</textarea>':'')+
+      '<label>Additional instruction</label><input data-i="'+i+'" data-k="extra" placeholder="Optional: e.g. He is also requested to attend the meeting." value="'+e(x.extra)+'">'+
+      '<div class="toolbar"><button class="btn" data-r="'+i+'">Remove</button></div>';
+    h.appendChild(d);
+  });
+
+  h.querySelectorAll("[data-k]").forEach(function(el){
+    el.oninput=function(){
+      var i=+this.dataset.i,k=this.dataset.k;
+      S.copies[i][k]=this.value;
+      if(k==="category")rc();
+      render();
+    };
+  });
+  h.querySelectorAll("[data-r]").forEach(function(b){
+    b.onclick=function(){
+      S.copies.splice(+this.dataset.r,1);
+      rc();
+      render();
+    };
+  });
+}
+
+["fileNo","addressee","subject","salutation","body","template"].forEach(function(id){
+  q(id).oninput=render;
+});
+
+q("addCopy").onclick=function(){
+  S.copies.push({designation:"",category:"Info & Action",extra:"",ps:"",custom:""});
+  rc();render();
+};
+q("pdf").onclick=function(){
+  renderPaginatedPreview();
+  setTimeout(function(){window.print();},80);
+};
+q("clear").onclick=function(){
+  ["fileNo","addressee","subject","body"].forEach(function(id){q(id).value="";});
+  q("salutation").value="Sir";
+  S.copies=[];
+  rc();render();
+};
+q("save").onclick=function(){
+  localStorage.setItem("phedDraft",JSON.stringify({
+    template:q("template").value,
+    fileNo:q("fileNo").value,
+    addressee:q("addressee").value,
+    subject:q("subject").value,
+    salutation:q("salutation").value,
+    body:q("body").value,
+    copies:S.copies
+  }));
+  alert("Draft saved.");
+};
+q("load").onclick=function(){
+  var x=JSON.parse(localStorage.getItem("phedDraft")||"null");
+  if(!x)return alert("No saved draft.");
+  q("template").value=x.template||"CE_1";
+  q("fileNo").value=x.fileNo||"";
+  q("addressee").value=x.addressee||"";
+  q("subject").value=x.subject||"";
+  q("salutation").value=x.salutation||"Sir";
+  q("body").value=x.body||"";
+  S.copies=x.copies||[];
+  rc();render();
+};
+
+q("word").onclick=function(){
+  var css='@page{size:A4;margin:1.5cm}body{font-family:"Times New Roman";font-size:12pt;color:#000;line-height:1.15}.page{width:100%;margin:auto}.emblem{text-align:center;line-height:1}.emblem img{width:1.2cm}.letterhead{text-align:center;font-weight:bold;font-size:11.5pt;line-height:1.05}.meta{display:flex;justify-content:space-between;margin-top:14pt}.to{margin-top:12pt;line-height:1.15}.subject{margin-top:12pt;line-height:1.2}.salutation{margin-top:10pt}.body-paragraph{text-align:justify;text-indent:0;margin:8pt 0;line-height:1.2}.body-paragraph.first-paragraph{text-indent:0.75cm}.body-listline{margin:4pt 0 4pt 0.75cm;padding-left:0.45cm;text-indent:-0.45cm;line-height:1.15}.body-shortline{margin:4pt 0 4pt 0.75cm;line-height:1.15}.signbox{width:7.8cm;margin:18pt 0 0 auto;text-align:center;font-weight:bold;line-height:1.15}.copyhead{font-weight:bold;margin-top:18pt;margin-bottom:5pt}.copyline{display:grid;grid-template-columns:0.5cm 1fr;gap:0.1cm;margin:3pt 0.25cm;text-align:justify;line-height:1.15}.signedbox{margin-top:18pt}.signed{font-weight:bold;margin-bottom:3pt}';
+  var doc='<html><head><meta charset="UTF-8"><style>'+css+'</style></head><body><div class="page">'+letterHtml()+'</div></body></html>';
+  var blob=new Blob([doc],{type:"application/msword"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="PHED_Letter.doc";
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1500);
+};
+
+rc();
+render();
+
 </script></body></html>
