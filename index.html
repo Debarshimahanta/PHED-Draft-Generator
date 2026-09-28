@@ -399,14 +399,231 @@ q("load").onclick=function(){
   rc();render();
 };
 
+
+function crc32(bytes){
+  var table=crc32.table||(crc32.table=(function(){
+    var t=[];
+    for(var n=0;n<256;n++){
+      var cc=n;
+      for(var k=0;k<8;k++)cc=(cc&1)?(0xEDB88320^(cc>>>1)):(cc>>>1);
+      t[n]=cc>>>0;
+    }
+    return t;
+  })());
+  var crc=0^(-1);
+  for(var i=0;i<bytes.length;i++)crc=(crc>>>8)^table[(crc^bytes[i])&0xFF];
+  return (crc^(-1))>>>0;
+}
+function u16(n){return [n&255,(n>>>8)&255];}
+function u32(n){return [n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255];}
+function utf8(s){return new TextEncoder().encode(s);}
+function b64bytes(s){
+  var bin=atob(s),a=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
+  return a;
+}
+function zipStore(files){
+  var chunks=[],central=[],offset=0;
+  files.forEach(function(f){
+    var name=utf8(f.name);
+    var data=f.data instanceof Uint8Array?f.data:utf8(f.data);
+    var crc=crc32(data);
+    var local=new Uint8Array([].concat(
+      u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),
+      Array.from(name)
+    ));
+    chunks.push(local,data);
+    central.push(new Uint8Array([].concat(
+      u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(data.length),u32(data.length),
+      u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),
+      Array.from(name)
+    )));
+    offset+=local.length+data.length;
+  });
+  var centralOffset=offset;
+  var centralSize=central.reduce(function(a,b){return a+b.length;},0);
+  var end=new Uint8Array([].concat(
+    u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),
+    u32(centralSize),u32(centralOffset),u16(0)
+  ));
+  return new Blob(chunks.concat(central,[end]),{
+    type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  });
+}
+function xesc(s){
+  return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+function wrun(text,bold,italic,size){
+  return '<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/>'+
+    '<w:sz w:val="'+(size||24)+'"/><w:szCs w:val="'+(size||24)+'"/>'+
+    (bold?'<w:b/>':'')+(italic?'<w:i/>':'')+
+    '</w:rPr><w:t xml:space="preserve">'+xesc(text)+'</w:t></w:r>';
+}
+function wpara(text,opt){
+  opt=opt||{};
+  var ppr='<w:pPr>'+
+    (opt.align?'<w:jc w:val="'+opt.align+'"/>':'')+
+    ((opt.firstLine||opt.left||opt.right)?'<w:ind'+
+      (opt.firstLine?' w:firstLine="'+opt.firstLine+'"':'')+
+      (opt.left?' w:left="'+opt.left+'"':'')+
+      (opt.right?' w:right="'+opt.right+'"':'')+'/>':'')+
+    '<w:spacing w:before="'+(opt.before||0)+'" w:after="'+(opt.after==null?80:opt.after)+'"'+
+      (opt.line?' w:line="'+opt.line+'" w:lineRule="auto"':'')+'/>'+
+    '</w:pPr>';
+  return '<w:p>'+ppr+wrun(text,!!opt.bold,!!opt.italic,opt.size||24)+'</w:p>';
+}
+function wsubject(){
+  return '<w:p><w:pPr><w:spacing w:before="120" w:after="80"/></w:pPr>'+
+    wrun('Sub: ',true,false,24)+wrun(q("subject").value,false,false,24)+'</w:p>';
+}
+function wheader(){
+  var office = tpl()==="MD_1"
+    ? ["GOVERNMENT OF ASSAM","OFFICE OF THE MISSION DIRECTOR: JAL JEEVAN MISSION, ASSAM","HENGRABARI, GUWAHATI-36"]
+    : ["GOVERNMENT OF ASSAM","OFFICE OF THE CHIEF ENGINEER (PHE) WATER, ASSAM","HENGRABARI, GUWAHATI - 36","Email - asphe@rediffmail.com"];
+
+  var img='<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="0"/></w:pPr>'+
+    '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">'+
+    '<wp:extent cx="430000" cy="760000"/><wp:docPr id="1" name="Assam Emblem"/>'+
+    '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'+
+    '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+    '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+    '<pic:nvPicPr><pic:cNvPr id="0" name="emblem.jpeg"/><pic:cNvPicPr/></pic:nvPicPr>'+
+    '<pic:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'+
+    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="430000" cy="760000"/></a:xfrm>'+
+    '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>'+
+    '</a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+  var out=img;
+  office.forEach(function(t){out+=wpara(t,{align:"center",bold:true,size:22,after:0});});
+  return out;
+}
+function wsign(signed){
+  var lines=tpl()==="MD_1"
+    ? ["(Kailash Karthik N, IAS)","Mission Director, JJM, Assam","Hengrabari, Guwahati -36."]
+    : ["Chief Engineer (PHE) Water, Assam","Hengrabari, Guwahati - 36"];
+
+  var cell='';
+  if(signed)cell+=wpara("e-SIGNED",{align:"center",bold:true,size:22,after:40});
+  lines.forEach(function(t){cell+=wpara(t,{align:"center",bold:true,size:22,after:0});});
+
+  return '<w:tbl>'+
+    '<w:tblPr><w:tblW w:w="0" w:type="auto"/>'+
+    '<w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>'+
+    '</w:tblPr>'+
+    '<w:tblGrid><w:gridCol w:w="6100"/><w:gridCol w:w="3700"/></w:tblGrid>'+
+    '<w:tr>'+
+    '<w:tc><w:tcPr><w:tcW w:w="6100" w:type="dxa"/></w:tcPr><w:p/></w:tc>'+
+    '<w:tc><w:tcPr><w:tcW w:w="3700" w:type="dxa"/><w:vAlign w:val="top"/></w:tcPr>'+cell+'</w:tc>'+
+    '</w:tr></w:tbl>';
+}
+function wbody(){
+  var out='',first=true;
+  blocks(q("body").value).forEach(function(x){
+    if(x[0]==="p"){
+      out+=wpara(x[1],{
+        align:"both",
+        firstLine:first?425:0,
+        size:24,
+        after:120,
+        line:276
+      });
+      first=false;
+    }else if(x[0]==="l"){
+      out+=wpara(x[1],{align:"left",left:425,firstLine:-255,size:24,after:60,line:276});
+    }else{
+      out+=wpara(x[1],{align:"left",left:425,size:24,after:60,line:276});
+    }
+  });
+  return out;
+}
+function wcopy(){
+  var copies=S.copies.filter(function(x){return (x.designation||"").trim();});
+  if(!copies.length)return '';
+  var out=wpara("Copy to:",{bold:true,size:24,before:260,after:80});
+  copies.forEach(function(x,i){
+    out+=wpara((i+1)+'.  '+cs(x),{
+      align:"both",
+      left:425,
+      firstLine:-255,
+      size:24,
+      after:50,
+      line:276
+    });
+  });
+  return out;
+}
+function buildDocx(){
+  var bodyXml='';
+  bodyXml+=wheader();
+  bodyXml+=wpara("No. "+q("fileNo").value,{bold:true,size:24,before:180,after:100});
+  bodyXml+=wpara("To,",{bold:true,size:24,after:0});
+  String(q("addressee").value||"").split(/\n/).forEach(function(line){
+    if(line!=="")bodyXml+=wpara(line,{size:24,after:0});
+  });
+  bodyXml+=wsubject();
+  bodyXml+=wpara(q("salutation").value+",",{size:24,before:80,after:100});
+  bodyXml+=wbody();
+  bodyXml+=wsign(false);
+  bodyXml+=wcopy();
+  if(S.copies.some(function(x){return (x.designation||"").trim();}))bodyXml+=wsign(true);
+
+  var documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '+
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '+
+    'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">'+
+    '<w:body>'+bodyXml+
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'+
+    '<w:pgMar w:top="567" w:right="879" w:bottom="567" w:left="879" w:header="170" w:footer="227" w:gutter="0"/>'+
+    '</w:sectPr></w:body></w:document>';
+
+  var contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Default Extension="jpeg" ContentType="image/jpeg"/>'+
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
+    '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'+
+    '</Types>';
+
+  var rootRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'+
+    '</Relationships>';
+
+  var docRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/emblem.jpeg"/>'+
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
+    '</Relationships>';
+
+  var styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
+    '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/>'+
+    '<w:pPr><w:spacing w:after="0" w:line="276" w:lineRule="auto"/></w:pPr>'+
+    '<w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/>'+
+    '<w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style></w:styles>';
+
+  return zipStore([
+    {name:"[Content_Types].xml",data:contentTypes},
+    {name:"_rels/.rels",data:rootRels},
+    {name:"word/document.xml",data:documentXml},
+    {name:"word/_rels/document.xml.rels",data:docRels},
+    {name:"word/styles.xml",data:styles},
+    {name:"word/media/emblem.jpeg",data:b64bytes(EMBLEM)}
+  ]);
+}
+
 q("word").onclick=function(){
-  var css='@page{size:A4;margin:1.5cm}body{font-family:"Times New Roman";font-size:12pt;color:#000;line-height:1.15}.page{width:100%;margin:auto}.emblem{text-align:center;line-height:1}.emblem img{width:1.2cm}.letterhead{text-align:center;font-weight:bold;font-size:11.5pt;line-height:1.05}.meta{display:flex;justify-content:space-between;margin-top:14pt}.to{margin-top:12pt;line-height:1.15}.subject{margin-top:12pt;line-height:1.2}.salutation{margin-top:10pt}.body-paragraph{text-align:justify;text-indent:0;margin:8pt 0;line-height:1.2}.body-paragraph.first-paragraph{text-indent:0.75cm}.body-listline{margin:4pt 0 4pt 0.75cm;padding-left:0.45cm;text-indent:-0.45cm;line-height:1.15}.body-shortline{margin:4pt 0 4pt 0.75cm;line-height:1.15}.signwrap{width:100%;margin-top:16pt}.signwrap.signedwrap{margin-top:18pt}.signtable{width:100%;border-collapse:collapse;table-layout:fixed}.signtable td{border:0;padding:0;vertical-align:top}.signtable .signcell{width:6.4cm;text-align:center;font-weight:bold;line-height:1.15}.copyhead{font-weight:bold;margin-top:24pt;margin-bottom:5pt}.copyline{display:grid;grid-template-columns:0.5cm 1fr;gap:0.1cm;margin:3pt 0.25cm;text-align:justify;line-height:1.15}.signed{font-weight:bold;margin-bottom:3pt}';
-  var doc='<html><head><meta charset="UTF-8"><style>'+css+'</style></head><body><div class="page">'+letterHtml()+'</div></body></html>';
-  var blob=new Blob([doc],{type:"application/msword"});
+  var blob=buildDocx();
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="PHED_Letter.doc";
+  a.download="PHED_Letter.docx";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   setTimeout(function(){URL.revokeObjectURL(a.href);},1500);
 };
 
