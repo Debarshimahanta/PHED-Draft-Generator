@@ -74,6 +74,89 @@ def _para(
         pf.right_indent = Cm(right_cm)
 
 
+
+LIST_RE = re.compile(r"^\s*(?:\d+[.)]|[A-Za-z][.)]|[-•])\s+")
+
+
+def _body_blocks(body: str):
+    """Parse body into visual blocks without rewriting any user text."""
+    blocks = []
+    for raw_block in re.split(r"\n\s*\n", body or ""):
+        if raw_block == "":
+            continue
+
+        lines = raw_block.splitlines()
+        nonempty = [line for line in lines if line.strip()]
+        if not nonempty:
+            continue
+
+        if all(LIST_RE.match(line) for line in nonempty):
+            for line in lines:
+                if line.strip():
+                    blocks.append(("list", line))
+            continue
+
+        # A group of short standalone lines is treated as a plain list-like block
+        # but the text itself is preserved exactly (no bullets/numbers are added).
+        if len(nonempty) >= 2 and all(len(line.strip()) <= 80 for line in nonempty):
+            for line in lines:
+                if line.strip():
+                    blocks.append(("shortline", line))
+            continue
+
+        blocks.append(("paragraph", raw_block))
+
+    return blocks
+
+
+def _add_body(doc: Document, body: str):
+    for kind, text in _body_blocks(body):
+        p = doc.add_paragraph()
+
+        if kind == "paragraph":
+            _para(
+                p,
+                after=6,
+                line=1.08,
+                align=WD_ALIGN_PARAGRAPH.JUSTIFY,
+                first_line_cm=0.75,
+            )
+        elif kind == "list":
+            _para(
+                p,
+                after=2,
+                line=1.0,
+                align=WD_ALIGN_PARAGRAPH.LEFT,
+                left_cm=0.75,
+            )
+            p.paragraph_format.first_line_indent = Cm(-0.45)
+        else:  # shortline
+            _para(
+                p,
+                after=2,
+                line=1.0,
+                align=WD_ALIGN_PARAGRAPH.LEFT,
+                left_cm=0.75,
+            )
+
+        r = p.add_run(text)
+        _font(r, size=10.5)
+
+
+def _body_preview_html(body: str) -> str:
+    parts = []
+    for kind, text in _body_blocks(body):
+        escaped = html.escape(text)
+        if kind == "paragraph":
+            escaped = escaped.replace("\n", "<br>")
+            parts.append(f'<p class="body-paragraph">{escaped}</p>')
+        elif kind == "list":
+            parts.append(f'<div class="body-listline">{escaped}</div>')
+        else:
+            parts.append(f'<div class="body-shortline">{escaped}</div>')
+    return "".join(parts)
+
+
 def _copy_sentence(item: dict) -> str:
     designation = (item.get("designation") or "").strip()
     category = item.get("category") or "Custom"
@@ -250,21 +333,7 @@ def build_docx(data: dict, output_path: Path | None = None) -> Path:
     _font(r, size=10.5)
 
     body = data.get("body") or ""
-    blocks = re.split(r"\n\s*\n", body)
-
-    for block in blocks:
-        if not block:
-            continue
-        p = doc.add_paragraph()
-        _para(
-            p,
-            after=5,
-            line=1.0,
-            align=WD_ALIGN_PARAGRAPH.JUSTIFY,
-            first_line_cm=0.8,
-        )
-        r = p.add_run(block)
-        _font(r, size=10.5)
+    _add_body(doc, body)
 
     # First designation block after body, exactly as in the approved reference format.
     _add_signatory_text(doc, signed_label=False)
@@ -320,11 +389,7 @@ def preview_html(data: dict) -> str:
         return html.escape(value or "").replace("\n", "<br>")
 
     body = data.get("body") or ""
-    body_html = "".join(
-        f'<p>{html.escape(block).replace(chr(10), "<br>")}</p>'
-        for block in re.split(r"\n\s*\n", body)
-        if block
-    )
+    body_html = _body_preview_html(body)
 
     copies = []
     for i, item in enumerate(data.get("copies", []), start=1):
@@ -365,12 +430,24 @@ body{{font-family:"Times New Roman",serif;background:#eceff2;margin:0;padding:22
 .subject,.reference{{font-size:var(--letter-font);margin-top:13px;line-height:var(--letter-line)}}
 .reference{{margin-top:4px}}
 .salutation{{font-size:var(--letter-font);margin-top:12px}}
-.body p{{
+.body-paragraph{{
     font-size:var(--letter-font);
     line-height:1.28;
     text-align:justify;
-    text-indent:31px;
+    text-indent:29px;
     margin:8px 0;
+}}
+.body-listline{{
+    font-size:var(--letter-font);
+    line-height:1.20;
+    margin:3px 0 3px 30px;
+    padding-left:18px;
+    text-indent:-18px;
+}}
+.body-shortline{{
+    font-size:var(--letter-font);
+    line-height:1.20;
+    margin:3px 0 3px 30px;
 }}
 .signbox{{
     width:305px;
